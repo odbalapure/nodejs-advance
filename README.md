@@ -2,4 +2,4 @@
 
 ### Table of content
 - [Event loop, microtask/macrotask queue](./event-loop/)
-- [Callback standards, EventEmitter](./async-patterns/)
+- [Callback standards, EventEmitter, Promisify](./async-patterns/)
