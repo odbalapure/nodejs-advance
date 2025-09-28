@@ -71,3 +71,24 @@ Stream server started at port 3000
 - Incremental / concurrent changes how the marking is scheduled to reduce pauses, not what is marked.
 
 > Marking means traversing the object graph and labelling objects that are still alive. Anything not marked after traversal is considered garbage and elgible for cleanup.
+
+## Readable streams
+
+Examples of builtin `Readable` streams:
+- File read
+- HTTP request
+- TCP sockets
+- STDIN
+
+```javascript
+process.stdin.on('data', (chunk) => {
+    const text = chunk.toString().trim();
+    if (text.toString().toLocaleLowerCase().trim() === 'exit') {
+        // NOTE: `pause()` stops the stream from emitting 'data' events. It does not buffer endlessly.
+        process.stdin.pause();
+    }
+    console.log('$ echo: ', text, '\n');
+});
+```
+
+We can create our own `Readable` stream classes, eg: [ArrayStream](./readable-streams.js).
