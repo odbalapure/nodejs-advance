@@ -34,7 +34,12 @@ if (cluster.isMaster) {
     }
 } else {
     createServer((_, res) => {
-        console.log(`This is a worker process ${process.pid} 🧑🏻‍🔧`);
+        // Killing worker process
+        if (req.url === '/kill') {
+            process.exit();
+        } else if (req.url === '/') {
+            console.log(`Serving requests from ${process.pid}`);
+        }
 
         res.writeHead(200, { 'content-type': 'text/plain' });
         res.end(`This is a worker process ${process.pid} 🧑🏻‍🔧`);
