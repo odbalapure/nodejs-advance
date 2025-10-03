@@ -83,3 +83,121 @@ Percentage of requests served within a certain time
   99%      51 ms
  100%      54 ms (longest request)
 ```
+
+## PM2
+
+Node.js cluster module allows us to utilize multiple CPU cores; PM2 is a production process manager that builds on top of that and provides more features like -- mointoring, auto restarts, zero downtime deployments, log management.
+
+Its a popular production process manager for Node. It provides features for mangaging, monitoring, keeping applications alive forever with zero downtime reloads.
+
+### What cluster does?
+
+`cluster` module allows to create child processes/workers that share the same server port. This helps scale single Node.js app across multiple CPU cores, which is crucial since Node.js is single threaded by default.
+
+Pros:
+- Simple built in API to fork workers
+- Shared port binding for load balancing
+- Full control over how workers are spawned and managed
+
+Cons:
+- Write logic for restarting dead workers, logging, monitoring
+- No process monitoring, no logs handling, no CPU/memory tracking
+- No ecosystem tools -- graceful reloads or zero downtime deploys
+
+### What PM2 does
+
+PM2 is a production process manager but adds more functionality.
+
+| Feature                    | Cluster Module  | PM2 |
+| -------------------------- | --------------  | --- |
+| Multi-core load balancing  | ✅              | ✅   |
+| Auto-restart on crash      | ❌ (manual)     | ✅   |
+| CPU/memory monitoring      | ❌              | ✅   |
+| Process logs management    | ❌              | ✅   |
+| Graceful reload            | ❌              | ✅   |
+| Zero-downtime deploys      | ❌              | ✅   |
+| CLI and Dashboard          | ❌              | ✅   |
+| JSON process config        | ❌              | ✅   |
+| Built-in cluster mode      | ✅              | ✅   |
+| Docker & ecosystem support | ❌              | ✅   |
+
+### When to use **cluster**
+
+- Want full low level control and building a custom process manager
+- The deploy env. already manages process monitoring (eg: k8)
+
+### When to use **PM2**
+
+- Tested solution for production
+- Use monitoring, restrating, scaling
+- Easily deploy, reload, debug app in production
+
+> `cluster` is powerful but `PM2` is practical. `cluster` is like an engine, PM2 is a full car.
+
+#### Create instances
+
+```sh
+ombalapure@Oms-MacBook-Air performance-scalability % pm2 process-pool.js ;5B-i 3
+ombalapure@Oms-MacBook-Air performance-scalability % pm2 start process-pool.js -i 3
+[PM2] Starting /Users/ombalapure/Desktop/VSCode/advance-nodejs/performance-scalability/process-pool.js in cluster_mode (3 instances)
+[PM2] Done.
+┌────┬─────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name            │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼─────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ process-pool    │ default     │ 1.0.0   │ cluster │ 76054    │ 0s     │ 0    │ online    │ 0%       │ 54.8mb   │ omb… │ disabled │
+│ 1  │ process-pool    │ default     │ 1.0.0   │ cluster │ 76055    │ 0s     │ 0    │ online    │ 0%       │ 54.3mb   │ omb… │ disabled │
+│ 2  │ process-pool    │ default     │ 1.0.0   │ cluster │ 76056    │ 0s     │ 0    │ online    │ 0%       │ 46.3mb   │ omb… │ disabled │
+└────┴─────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+```
+
+- `-i` flag stands for instances; used to specify the no. of instances to start the app.
+- `max` to use all the available CPU cores.
+
+#### Stop all instances
+
+```sh
+ombalapure@Oms-MacBook-Air performance-scalability % pm2 stop all                 
+[PM2] Applying action stopProcessId on app [all](ids: [ 0, 1, 2, 3 ])
+[PM2] [process-pool](0) ✓
+[PM2] [process-pool](1) ✓
+[PM2] [process-pool](2) ✓
+[PM2] [joke-server](3) ✓
+┌────┬─────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name            │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼─────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 3  │ joke-server     │ default     │ 1.0.0   │ fork    │ 0        │ 0      │ 30   │ stopped   │ 0%       │ 0b       │ omb… │ disabled │
+│ 0  │ process-pool    │ default     │ 1.0.0   │ cluster │ 0        │ 0      │ 5    │ stopped   │ 0%       │ 0b       │ omb… │ disabled │
+│ 1  │ process-pool    │ default     │ 1.0.0   │ cluster │ 0        │ 0      │ 5    │ stopped   │ 0%       │ 0b       │ omb… │ disabled │
+│ 2  │ process-pool    │ default     │ 1.0.0   │ cluster │ 0        │ 0      │ 4    │ stopped   │ 0%       │ 0b       │ omb… │ disabled │
+└────┴─────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+```
+
+#### List all instances
+
+```sh
+ombalapure@Oms-MacBook-Air performance-scalability % pm2 list
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 3  │ joke-server        │ fork     │ 30   │ online    │ 0%       │ 56.1mb   │
+│ 0  │ process-pool       │ cluster  │ 5    │ stopped   │ 0%       │ 0b       │
+│ 1  │ process-pool       │ cluster  │ 5    │ stopped   │ 0%       │ 0b       │
+│ 2  │ process-pool       │ cluster  │ 4    │ stopped   │ 0%       │ 0b       │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+```
+
+#### Mointor process
+
+```sh
+pm2 monit
+```
+
+This will list the process list, server logs, custom metrics (heap size, heap usage, event loop latency etc.), metadata (app name, restarts, script path, uptime etc.)
+
+#### Apply updates to already running instances
+
+```sh
+pm2 reload app-name
+```
+
+This will apply the changes without stopping the instances. The changes will be applied gradually to all the instances. 

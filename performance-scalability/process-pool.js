@@ -33,7 +33,7 @@ if (cluster.isMaster) {
         cluster.fork();
     }
 } else {
-    createServer((_, res) => {
+    createServer((req, res) => {
         // Killing worker process
         if (req.url === '/kill') {
             process.exit();
